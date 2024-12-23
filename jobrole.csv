@@ -14,3 +14,55 @@ CV,How do convolutional neural networks (CNNs) specifically enhance the performa
 CV,"What is image segmentation, and what techniques are commonly used to achieve it in computer vision applications?"
 CV,Can you explain the role of data augmentation in training computer vision models and how it improves model robustness?
 CV,"What are some common challenges faced in computer vision, such as occlusion or lighting variations, and how can they be addressed?"
+
+
+
+
+code
+
+import pandas as pd
+import numpy as np
+import openai
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+final=[]
+df=pd.read_csv('jobrole.csv')
+x=df['Roal']
+y=df['Questions']
+ml=[]
+dl=[]
+cv=[]
+# print(x)
+# print(y)
+# print(df)
+openai.api_key='API_KEY'
+arr_quest=[]
+for i in df['Questions']:
+    arr_quest.append(i)
+    response=openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=i
+    )
+    assistant_res=response['chooces'][0]['message']['content']
+    # print("chatgpt:",assistant_res.strip("\n").strip())
+    person_answer = input()
+    gptanswer = assistant_res
+
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform([person_answer, gptanswer])
+    cos_sim = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])
+    similarity_percentage = cos_sim[0][0] * 100
+    print(similarity_percentage)
+    for value in range(len(df)):
+        if x[value] == 'ML':
+            ml.append(int(similarity_percentage))
+        elif x[value]=='DL':
+            dl.append(int(similarity_percentage))
+        else:
+            cv.append(int(similarity_percentage))
+if sum(ml)>sum(dl) and sum(ml)>sum(cv):
+    print('ML')
+elif sum(dl)>sum(ml) and sum(dl)>sum(cv):
+    print('DL')
+else:
+    print('CV')
